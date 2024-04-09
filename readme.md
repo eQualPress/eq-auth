@@ -25,7 +25,6 @@ in to WordPress using eQual credentials and synchronizes user data between WordP
 
 ## Installation
 
-
 1. Upload `eq-auth.php` to the `/public/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 
