@@ -44,6 +44,14 @@ in to WordPress using eQual credentials and synchronizes user data between WordP
 - **Smooth Logout Process:**
   Clears access token cookies upon user logout from WordPress, enhancing security and privacy.
 
+## Hooks and Filters used
+
+- wp_login
+- user_register
+- password_reset
+- profile_update
+- wp_logout
+
 ## Installation
 
 1. Upload `eq-auth.php` to the `/public/wp-content/plugins/` directory.
