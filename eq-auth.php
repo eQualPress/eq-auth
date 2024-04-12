@@ -118,7 +118,7 @@ function eq_auth_password_reset( WP_User $user, string $new_pass ): void {
     \wpcontent\Log::report( 'eq_auth_password_reset => $eqUser', $eqUser );
 
     if ( $eqUser ) {
-        $eqUser->update( [ 'password' => $new_pass ] );
+        $eqUser->update( [ 'password' => password_hash( $new_pass, PASSWORD_BCRYPT ) ] );
     }
 }
 
