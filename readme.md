@@ -23,6 +23,27 @@ A plugin for connecting to the eQual framework.
 This plugin provides integration with the eQual framework for user authentication and management. It allows users to log
 in to WordPress using eQual credentials and synchronizes user data between WordPress and eQual.
 
+## Features
+
+- **Seamless User Login:**
+  Integration with eQual framework enables users to log in to WordPress using their eQual credentials, enhancing user
+  experience.
+
+- **User Data Synchronization:**
+  The plugin synchronizes user data between WordPress and eQual, ensuring consistency and accuracy across platforms.
+
+- **New User Registration:**
+  Automatically syncs new user registrations with eQual to maintain a unified user database.
+
+- **Password Reset Integration:**
+  Allows users to reset their passwords in WordPress, updating the changes in eQual for enhanced security.
+
+- **Profile Update Sync:**
+  Updates user profiles in eQual when changes are made in WordPress, ensuring data integrity and consistency.
+
+- **Smooth Logout Process:**
+  Clears access token cookies upon user logout from WordPress, enhancing security and privacy.
+
 ## Installation
 
 1. Upload `eq-auth.php` to the `/public/wp-content/plugins/` directory.
@@ -50,4 +71,4 @@ the plugin code directly to adjust the integration behavior according to your re
 
 ### 0.1.0
 
-This version introduces basic integration with the eQual framework for user authentication.
+- This version introduces basic integration with the eQual framework for user authentication.
