@@ -121,18 +121,45 @@ function eq_auth_password_reset( WP_User $user, string $new_pass ): void {
     }
 }
 
-add_action( 'profile_update', 'eq_auth_profile_updated', 10, 2 );
-function eq_auth_profile_updated( int $user_id, WP_User $old_user_data, array $userdata ): void {
-    $eqUser = \wordpress\User::search( [ 'login', '=', $userdata['user_email'] ] )->read( [ 'id' ] );
+add_action( 'profile_update', 'eq_auth_profile_updated' );
+function eq_auth_profile_updated( int $user_id ): void {
+    $wpUser = get_userdata( $user_id );
 
-    \wpcontent\Log::report( 'eq_auth_profile_updated => $eqUser', $eqUser );
+    if ( $wpUser instanceof WP_User ) {
+        $wpUser = $wpUser->to_array();
 
-    if ( $eqUser ) {
-        eQual::run( 'do', 'wordpress_user_update', [
-            'id'        => $eqUser['id'],
-            'fields'    => $userdata,
-            'update_wp' => false
-        ] );
+        $eqUser = \wordpress\User::search( [ 'wordpress_user_id', '=', $user_id ] )->read( [
+            'id',
+            'wordpress_user_id'
+        ] )->first( true );
+
+        \wpcontent\Log::report( 'eq_auth_profile_updated => $eqUser', $eqUser );
+        \wpcontent\Log::report( 'eq_auth_profile_updated => $wpUser array', $wpUser );
+
+        if ( ( empty( $wpUser ) || ! empty( $wpUser['user_activation_key'] ) ) && ! $eqUser ) {
+            return;
+        }
+
+        $wpUser['firstname'] = get_user_meta( $user_id, 'first_name', true );
+        $wpUser['lastname']  = get_user_meta( $user_id, 'last_name', true );
+        $email               = mb_split( '@', $wpUser['user_email'] )[0];
+
+        $userData = [
+            'firstname' => $wpUser['firstname'],
+            'lastname'  => $wpUser['lastname'],
+            'login'     => $wpUser['user_email'],
+            'username'  => $email
+        ];
+
+        \wpcontent\Log::report( 'eq_auth_profile_updated => $wpUser with meta', $wpUser );
+
+        if ( ! empty( $eqUser['wordpress_user_id'] ) ) {
+            eQual::run( 'do', 'wordpress_user_update', [
+                'id'        => (int) $eqUser['id'],
+                'fields'    => $userData,
+                'update_wp' => '0'
+            ] );
+        }
     }
 }
 
