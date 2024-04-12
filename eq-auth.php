@@ -16,7 +16,6 @@
 
 
 use core\Group;
-use core\User;
 use equal\auth\AuthenticationManager;
 
 include_once ABSPATH . '/wp-content/Log.php';
