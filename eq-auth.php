@@ -122,6 +122,21 @@ function eq_auth_password_reset( WP_User $user, string $new_pass ): void {
     }
 }
 
+add_action( 'profile_update', 'eq_auth_profile_updated', 10, 2 );
+function eq_auth_profile_updated( int $user_id, WP_User $old_user_data, array $userdata ): void {
+    $eqUser = \wordpress\User::search( [ 'login', '=', $userdata['user_email'] ] )->read( [ 'id' ] );
+
+    \wpcontent\Log::report( 'eq_auth_profile_updated => $eqUser', $eqUser );
+
+    if ( $eqUser ) {
+        eQual::run( 'do', 'wordpress_user_update', [
+            'id'        => $eqUser['id'],
+            'fields'    => $userdata,
+            'update_wp' => false
+        ] );
+    }
+}
+
 add_action( 'wp_logout', 'eq_auth_wp_logout' );
 function eq_auth_wp_logout( int $user_id ): void {
     setcookie( 'access_token', '', time() );
