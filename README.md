@@ -27,22 +27,25 @@ in to WordPress using eQual credentials and synchronizes user data between WordP
 
 - **Seamless User Login:**
   Integration with eQual framework enables users to log in to WordPress using their eQual credentials, enhancing user
-  experience.
+  experience with controller call ``wordpress_user_signin``.
 
 - **User Data Synchronization:**
-  The plugin synchronizes user data between WordPress and eQual, ensuring consistency and accuracy across platforms.
+  The plugin synchronized user data between WordPress and eQual, ensuring consistency and accuracy across platforms.
 
 - **New User Registration:**
-  Automatically syncs new user registrations with eQual to maintain a unified user database.
+  Automatically syncs new user registrations with eQual to maintain a unified user database with controller
+  call ``wordpress_user_signup``.
 
 - **Password Reset Integration:**
   Allows users to reset their passwords in WordPress, updating the changes in eQual for enhanced security.
 
 - **Profile Update Sync:**
-  Updates user profiles in eQual when changes are made in WordPress, ensuring data integrity and consistency.
+  Updates user profiles in eQual when changes are made in WordPress, ensuring data integrity and consistency. Call the
+  controller ``wordpress_user_update``.
 
 - **Smooth Logout Process:**
   Clears access token cookies upon user logout from WordPress, enhancing security and privacy.
+  Call the controller ``wordpress_user_signout``.
 
 ## Hooks and Filters used
 
