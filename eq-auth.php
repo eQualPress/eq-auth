@@ -32,7 +32,7 @@ function eq_auth_wp_login( string $user_login, WP_User $user ): void {
     /** @var AuthenticationManager $auth */
     $auth = $auth['auth'];
 
-    $eqUser = \wordpress\User::search( [ 'login', '=', $user->user_email ] )->read( [
+    $eq_user = \wordpress\User::search( [ 'login', '=', $user->user_email ] )->read( [
         'id',
         'groups_ids'
     ] )->first( true );
@@ -42,23 +42,23 @@ function eq_auth_wp_login( string $user_login, WP_User $user ): void {
         'user_email' => $user->user_email
     ] );
     \wpcontent\Log::report( 'eq_auth_wp_login => $user_login', $user_login );
-    \wpcontent\Log::report( 'eq_auth_wp_login => $eqUser', $eqUser );
+    \wpcontent\Log::report( 'eq_auth_wp_login => $eqUser', $eq_user );
 
-    if ( ! $eqUser ) {
+    if ( ! $eq_user ) {
         throw new Exception( "user_not_found", QN_ERROR_INVALID_USER );
     }
 
-    $eqGroups = Group::search( [ 'id', 'in', $eqUser['groups_ids'] ] )->read( [ 'name' ] )->get( true );
-    \wpcontent\Log::report( 'eq_auth_wp_login => eqGroups', $eqGroups );
+    $eq_groups = Group::search( [ 'id', 'in', $eq_user['groups_ids'] ] )->read( [ 'name' ] )->get( true );
+    \wpcontent\Log::report( 'eq_auth_wp_login => eqGroups', $eq_groups );
 
-    $eqUser['groups'] = array_values( array_map( function ( $group ) {
+    $eq_user['groups'] = array_values( array_map( function ( $group ) {
         return $group['name'];
-    }, $eqGroups ) );
+    }, $eq_groups ) );
 
-    if ( in_array( 'users', $eqUser['groups'] ) ) {
-        $access_token = $auth->token( $eqUser['id'], constant( 'AUTH_ACCESS_TOKEN_VALIDITY' ) );
+    if ( in_array( 'users', $eq_user['groups'] ) ) {
+        $access_token = $auth->token( $eq_user['id'], constant( 'AUTH_ACCESS_TOKEN_VALIDITY' ) );
 
-        $auth->su( $eqUser['id'] );
+        $auth->su( $eq_user['id'] );
 
         setcookie(
             'access_token',
@@ -82,31 +82,31 @@ function eq_auth_user_registered( int $user_id ): void {
         'userdata' => $wpUser
     ] );
 
-    $eqUser = \wordpress\User::search( [ 'login', '=', $wpUser->user_email ] )->read( [
+    $eq_user = \wordpress\User::search( [ 'login', '=', $wpUser->user_email ] )->read( [
         'id',
         'groups_ids'
     ] )->first( true );
 
     \wpcontent\Log::report( 'eq_auth_user_registered => $_POST', $_POST );
-    \wpcontent\Log::report( 'eq_auth_user_registered => $eqUser', $eqUser );
-    \wpcontent\Log::report( 'eq_auth_user_registered => ! $eqUser', ( ! $eqUser ) );
+    \wpcontent\Log::report( 'eq_auth_user_registered => $eqUser', $eq_user );
+    \wpcontent\Log::report( 'eq_auth_user_registered => ! $eqUser', ( ! $eq_user ) );
 
-    if ( empty( $eqUser ) ) {
+    if ( empty( $eq_user ) ) {
         $username = explode( '@', $wpUser->user_email )[0];
         $password = wp_generate_password();
 
-        $userData = [
+        $user_data = [
             'wordpress_user_id' => $user_id,
             'email'             => $wpUser->user_email,
             'username'          => $username,
             'password'          => $password,
         ];
 
-        \wpcontent\Log::report( 'eq_auth_user_registered => $userData', $userData );
+        \wpcontent\Log::report( 'eq_auth_user_registered => $userData', $user_data );
 
-        $eqWordpressUserSigninResponse = \config\eQual::run( 'do', 'wordpress_user_signup', $userData );
+        $eq_wordpress_user_signin_response = \config\eQual::run( 'do', 'wordpress_user_signup', $user_data );
 
-        \wpcontent\Log::report( 'eq_auth_user_registered => $eqWordpressUserSigninResponse', $eqWordpressUserSigninResponse );
+        \wpcontent\Log::report( 'eq_auth_user_registered => $eqWordpressUserSigninResponse', $eq_wordpress_user_signin_response );
     }
 }
 
@@ -128,15 +128,15 @@ function eq_auth_profile_updated( int $user_id ): void {
     if ( $wpUser instanceof WP_User ) {
         $wpUser = $wpUser->to_array();
 
-        $eqUser = \wordpress\User::search( [ 'wordpress_user_id', '=', $user_id ] )->read( [
+        $eq_user = \wordpress\User::search( [ 'wordpress_user_id', '=', $user_id ] )->read( [
             'id',
             'wordpress_user_id'
         ] )->first( true );
 
-        \wpcontent\Log::report( 'eq_auth_profile_updated => $eqUser', $eqUser );
+        \wpcontent\Log::report( 'eq_auth_profile_updated => $eqUser', $eq_user );
         \wpcontent\Log::report( 'eq_auth_profile_updated => $wpUser array', $wpUser );
 
-        if ( ( empty( $wpUser ) || ! empty( $wpUser['user_activation_key'] ) ) && ! $eqUser ) {
+        if ( ( empty( $wpUser ) || ! empty( $wpUser['user_activation_key'] ) ) && ! $eq_user ) {
             return;
         }
 
@@ -144,7 +144,7 @@ function eq_auth_profile_updated( int $user_id ): void {
         $wpUser['lastname']  = get_user_meta( $user_id, 'last_name', true );
         $email               = mb_split( '@', $wpUser['user_email'] )[0];
 
-        $userData = [
+        $user_data = [
             'firstname' => $wpUser['firstname'],
             'lastname'  => $wpUser['lastname'],
             'login'     => $wpUser['user_email'],
@@ -153,10 +153,10 @@ function eq_auth_profile_updated( int $user_id ): void {
 
         \wpcontent\Log::report( 'eq_auth_profile_updated => $wpUser with meta', $wpUser );
 
-        if ( ! empty( $eqUser['wordpress_user_id'] ) ) {
+        if ( ! empty( $eq_user['wordpress_user_id'] ) ) {
             eQual::run( 'do', 'wordpress_user_update', [
-                'id'        => (int) $eqUser['id'],
-                'fields'    => $userData,
+                'id'        => (int) $eq_user['id'],
+                'fields'    => $user_data,
                 'update_wp' => '0'
             ] );
         }
