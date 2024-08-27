@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:     eq-auth
+ * Plugin Name:     eQual - Auth
  * Plugin URI:      PLUGIN SITE HERE
  * Description:     A plugin for connecting to the eQual framework
  * Author:          AlexisVS
