@@ -83,3 +83,8 @@ the plugin code directly to adjust the integration behavior according to your re
 ### 0.1.0
 
 - This version introduces basic integration with the eQual framework for user authentication.
+
+### 0.1.1
+
+- Modified the loading logic of the eQual library. The loading logic is now placed in the `plugins/eq-run/eq-load.php`
+  file, the `load_eQual_lib()` function.
