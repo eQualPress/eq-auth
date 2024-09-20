@@ -1,15 +1,16 @@
 <?php
 /**
- * Plugin Name:     eQual - Auth
- * Plugin URI:      PLUGIN SITE HERE
- * Description:     A plugin for connecting to the eQual framework
- * Author:          AlexisVS
- * Author URI:      https://github.com/AlexisVS
- * Text Domain:     eq-auth
- * Domain Path:     /languages
- * Version:         0.1.1
- * Requires at least: 0.1.0
- * Requires: eq-run
+ * Plugin Name:         eQual - Auth
+ * Plugin URI:          PLUGIN SITE HERE
+ * Description:         A plugin for connecting to the eQual framework
+ * Author:              eQualPress
+ * Original Author(s):  AlexisVS, Cédric Françoys
+ * Author URI:          https://github.com/equalpress
+ * Text Domain:         eq-auth
+ * Domain Path:         /languages
+ * Version:             0.1.1
+ * Requires at least:   0.1.0
+ * Requires:            eq-run
  *
  * @package         Eq_Auth
  */
@@ -22,8 +23,7 @@ add_action('wp_login', 'eq_auth_wp_login', 10, 2);
 /**
  * @throws Exception
  */
-function eq_auth_wp_login(string $user_login, WP_User $user): void
-{
+function eq_auth_wp_login(string $user_login, WP_User $user): void {
     load_eQual_lib();
 
     $auth = eQual::inject(['auth']);
@@ -31,32 +31,33 @@ function eq_auth_wp_login(string $user_login, WP_User $user): void
     /** @var AuthenticationManager $auth */
     $auth = $auth['auth'];
 
-    $eq_user = \wordpress\User::search(['login', '=', $user->user_email])->read([
-        'id',
-        'groups_ids'
-    ])->first(true);
+    $eq_user = \wordpress\User::search(['wordpress_user_id', '=', $user->ID])
+        ->read([
+            'id',
+            'groups_ids'
+        ])
+        ->first(true);
 
     if (!$eq_user) {
-        throw new Exception("user_not_found", QN_ERROR_INVALID_USER);
+        throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
     }
 
     $eq_groups = Group::search(['id', 'in', $eq_user['groups_ids']])->read(['name'])->get(true);
 
     $eq_user['groups'] = array_values(array_map(function ($group) {
-        return $group['name'];
-    }, $eq_groups));
+            return $group['name'];
+        }, $eq_groups));
 
-    if (in_array('users', $eq_user['groups']) && !in_array('admins', $eq_user['groups'])) {
-        $access_token = $auth->token($eq_user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
-        $auth->su($eq_user['id']);
+    $access_token = $auth->token($eq_user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
-        setcookie('access_token', $access_token, [
-            'expires'  => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-            'httponly' => true,
-            'secure'   => constant('AUTH_TOKEN_HTTPS'),
-        ]);
-    }
+    $auth->su($eq_user['id']);
+
+    setcookie('access_token', $access_token, [
+        'expires'  => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        'httponly' => true,
+        'secure'   => constant('AUTH_TOKEN_HTTPS'),
+    ]);
 
     if (in_array('admins', $eq_user['groups'])) {
         // Redirect to the WordPress admin dashboard
@@ -72,16 +73,17 @@ add_action('user_register', 'eq_auth_user_registered');
 /**
  * @throws Exception
  */
-function eq_auth_user_registered(int $user_id): void
-{
+function eq_auth_user_registered(int $user_id): void {
     load_eQual_lib();
 
     $wpUser = get_userdata($user_id);
 
-    $eq_user = \wordpress\User::search(['login', '=', $wpUser->user_email])->read([
-        'id',
-        'groups_ids'
-    ])->first(true);
+    $eq_user = \wordpress\User::search(['wordpress_user_id', '=', $wpUser->ID])
+        ->read([
+            'id',
+            'groups_ids'
+        ])
+        ->first(true);
 
     if (empty($eq_user)) {
         $username = explode('@', $wpUser->user_email)[0];
@@ -102,8 +104,7 @@ add_action('password_reset', 'eq_auth_password_reset', 10, 2);
 /**
  * @throws Exception
  */
-function eq_auth_password_reset(WP_User $user, string $new_pass): void
-{
+function eq_auth_password_reset(WP_User $user, string $new_pass): void {
     load_eQual_lib();
 
     $eqUser = \wordpress\User::search(['login', '=', $user->user_email])->read(['id']);
@@ -114,8 +115,7 @@ function eq_auth_password_reset(WP_User $user, string $new_pass): void
 }
 
 add_action('profile_update', 'eq_auth_profile_updated');
-function eq_auth_profile_updated(int $user_id): void
-{
+function eq_auth_profile_updated(int $user_id): void {
     $wpUser = get_userdata($user_id);
 
     if ($wpUser instanceof WP_User) {
@@ -154,7 +154,6 @@ function eq_auth_profile_updated(int $user_id): void
 }
 
 add_action('wp_logout', 'eq_auth_wp_logout');
-function eq_auth_wp_logout(int $user_id): void
-{
+function eq_auth_wp_logout(int $user_id): void {
     setcookie('access_token', '', time());
 }
