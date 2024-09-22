@@ -38,7 +38,7 @@ function eq_auth_wp_login(string $user_login, WP_User $user): void {
         ])
         ->first(true);
 
-    if ($eq_user) {
+    if($eq_user) {
         $eq_groups = Group::search(['id', 'in', $eq_user['groups_ids']])->read(['name'])->get(true);
 
         $eq_user['groups'] = array_values(array_map(function ($group) {
@@ -57,8 +57,8 @@ function eq_auth_wp_login(string $user_login, WP_User $user): void {
 
         if (in_array('admins', $eq_user['groups'])) {
             // Redirect to the WordPress admin dashboard
-            wp_redirect(admin_url());
-            exit();
+            // wp_redirect(admin_url());
+            // exit();
         }
     }
 
