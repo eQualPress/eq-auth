@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:         eQual - Auth
- * Plugin URI:          PLUGIN SITE HERE
+ * Plugin URI:          https://github.com/equalpress
  * Description:         A plugin for connecting to the eQual framework
  * Author:              eQualPress
  * Original Author(s):  AlexisVS, Cédric Françoys
@@ -38,35 +38,32 @@ function eq_auth_wp_login(string $user_login, WP_User $user): void {
         ])
         ->first(true);
 
-    if (!$eq_user) {
-        throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
+    if ($eq_user) {
+        $eq_groups = Group::search(['id', 'in', $eq_user['groups_ids']])->read(['name'])->get(true);
+
+        $eq_user['groups'] = array_values(array_map(function ($group) {
+                return $group['name'];
+            }, $eq_groups));
+
+        $access_token = $auth->token($eq_user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+
+        $auth->su($eq_user['id']);
+
+        setcookie('access_token', $access_token, [
+            'expires'  => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+            'httponly' => true,
+            'secure'   => constant('AUTH_TOKEN_HTTPS'),
+        ]);
+
+        if (in_array('admins', $eq_user['groups'])) {
+            // Redirect to the WordPress admin dashboard
+            wp_redirect(admin_url());
+            exit();
+        }
     }
 
-    $eq_groups = Group::search(['id', 'in', $eq_user['groups_ids']])->read(['name'])->get(true);
-
-    $eq_user['groups'] = array_values(array_map(function ($group) {
-            return $group['name'];
-        }, $eq_groups));
-
-
-    $access_token = $auth->token($eq_user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
-
-    $auth->su($eq_user['id']);
-
-    setcookie('access_token', $access_token, [
-        'expires'  => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-        'httponly' => true,
-        'secure'   => constant('AUTH_TOKEN_HTTPS'),
-    ]);
-
-    if (in_array('admins', $eq_user['groups'])) {
-        // Redirect to the WordPress admin dashboard
-        wp_redirect(admin_url());
-    }
-    else {
-        // Redirect to the WordPress home page
-        wp_redirect(home_url());
-    }
+    // Redirect to the WordPress home page
+    // wp_redirect(home_url());
 }
 
 add_action('user_register', 'eq_auth_user_registered');
@@ -153,7 +150,6 @@ function eq_auth_profile_updated(int $user_id): void {
     }
 }
 
-add_action('wp_logout', 'eq_auth_wp_logout');
-function eq_auth_wp_logout(int $user_id): void {
+add_action('wp_logout', function (int $user_id): void {
     setcookie('access_token', '', time());
-}
+});
